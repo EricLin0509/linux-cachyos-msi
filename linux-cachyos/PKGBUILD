@@ -131,6 +131,12 @@
 # Replaces requirement for r8125-dkms
 : "${_build_r8125:=no}"
 
+# Replace the msi-ec driver from GitHub sources
+# See "https://github.com/BeardOverflow/msi-ec"
+# This gives you the latest MSI EC driver with the latest features and fixes
+# Warning: Enable this option may cause build failure
+: "${_replace_msi_ec:=yes}"
+
 # Build a debug package with non-stripped vmlinux
 : "${_build_debug:=no}"
 
@@ -271,6 +277,10 @@ if [ "$_build_nvidia_580xx" = "yes" ]; then
              "${_patchsource}/misc/nvidia-580xx/0002-fix-hw-cursor-kde.patch")
 fi
 
+if [ "$_replace_msi_ec" = "yes" ]; then
+    source+=("git+https://github.com/BeardOverflow/msi-ec")
+fi
+
 # Use generated AutoFDO Profile
 if [ "$_autofdo" = "yes" ] && [ -n "$_autofdo_profile_name" ]; then
     if [ -e "$_autofdo_profile_name" ]; then
@@ -334,6 +344,13 @@ prepare() {
             patch -Np1 < "../$src"
         fi
     done
+
+    if [ "$_replace_msi_ec" = "yes" ]; then
+        echo "Replacing msi-ec driver..."
+        cp ../msi-ec/msi-ec.c drivers/platform/x86/
+        cp ../msi-ec/ec_memory_configuration.h drivers/platform/x86/
+        rm drivers/platform/x86/msi-ec.h
+    fi
 
     echo "Setting config..."
     cp ../config .config
@@ -876,4 +893,5 @@ done
 b2sums=('3177ecfc191e6a90af2d0ccf3687281f32bc8b779be8ad6bf1c55a0c05b51f75b0009bf2d11833f73e45d31727c613c5aed7c68be348af8d00596c4d195f057b'
         'SKIP'
         'c96bc76381a6aa601ae39663dd8c21cd2f4503d6d13ee944770a5b46f70175b9280159c7ff3a2fa3d29ada7fe82cdf95ca6715d3d9489a27b044154db0355789'
-        'c992567bd7dd8553432be496ffa1c17e2f5ebe9c7edb51945cf977e1b742dd6517c210d8843bb82744ca705efd07f8027cd7dde41b50215ebd707a34aa81462e')
+        'c992567bd7dd8553432be496ffa1c17e2f5ebe9c7edb51945cf977e1b742dd6517c210d8843bb82744ca705efd07f8027cd7dde41b50215ebd707a34aa81462e'
+        'SKIP')
