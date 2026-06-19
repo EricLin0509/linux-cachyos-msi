@@ -131,6 +131,12 @@
 # Replaces requirement for r8125-dkms
 : "${_build_r8125:=no}"
 
+# Replace the msi-ec driver from GitHub sources
+# See "https://github.com/BeardOverflow/msi-ec"
+# This gives you the latest MSI EC driver with the latest features and fixes
+# Warning: Enable this option may cause build failure
+: "${_replace_msi_ec:=yes}"
+
 # Build a debug package with non-stripped vmlinux
 : "${_build_debug:=no}"
 
@@ -250,6 +256,10 @@ if [ "$_build_r8125" = "yes" ]; then
     source+=("git+https://github.com/aravance/r8125.git")
 fi
 
+if [ "$_replace_msi_ec" = "yes" ]; then
+    source+=("git+https://github.com/BeardOverflow/msi-ec")
+fi
+
 ## List of CachyOS schedulers
 case "$_cpusched" in
     bore|rt-bore|hardened) # CachyOS Scheduler (BORE)
@@ -294,6 +304,13 @@ prepare() {
             patch -Np1 < "../$src"
         fi
     done
+
+    if [ "$_replace_msi_ec" = "yes" ]; then
+        echo "Replacing msi-ec driver..."
+        cp ../msi-ec/msi-ec.c drivers/platform/x86/
+        cp ../msi-ec/ec_memory_configuration.h drivers/platform/x86/
+        rm drivers/platform/x86/msi-ec.h
+    fi
 
     echo "Setting config..."
     cp ../config .config
@@ -824,4 +841,5 @@ b2sums=('67e2a98ad5df5469afae493c34a3f2155932abb94b16c016a8782790bf3a305f91c03b1
         'SKIP'
         'e6fc382da6b317f14b0ffe1e22e120ea8c9efa03a95ee58360765629b7b81f89e98f04349134232215ae0ff8aa10c2200a7551a3c3aeb1e5d1fb1e4c5673f0e9'
         'ddaf90fd846e13cb213fb343f9599447d377dd51111cd2cbfbda2334836ba7c6925a28453353017a785163dbd1d5d44f1c7eca036c611a8dcf2cecab7d35c2de'
-        '37b05df8f46b19d5141a283069c2079c6c8066d3065a8f285cd0a4d5a2617a9557f12b00c421cea4a873b240ec022ca84133439d3d09ac4842bf2f83055d4213')
+        '37b05df8f46b19d5141a283069c2079c6c8066d3065a8f285cd0a4d5a2617a9557f12b00c421cea4a873b240ec022ca84133439d3d09ac4842bf2f83055d4213'
+        'SKIP')
